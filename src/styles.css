@@ -1,0 +1,116 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-dark: var(--primary-dark);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent-dark: var(--accent-dark);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-whatsapp: var(--whatsapp);
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  --shadow-card: 0 4px 20px -8px oklch(0.3 0.08 155 / 0.18);
+  --shadow-elevated: 0 12px 40px -12px oklch(0.3 0.08 155 / 0.28);
+}
+
+:root {
+  --radius: 0.875rem;
+
+  /* Brand Colors */
+  --primary: #0B2545;          /* Navy Blue */
+  --primary-dark: #1A3D6E;     /* Deep Blue */
+  --primary-foreground: #FFFFFF; /* White */
+
+  /* Sky Blue Accent */
+  --accent: #5BB8E8;           /* Sky Blue */
+  --accent-dark: #3fa6d6;      /* Darker Sky Blue for hover states */
+  --accent-foreground: #0B2545; /* Navy Blue */
+
+  --background: #FFFFFF;       /* White */
+  --foreground: #0B2545;       /* Navy Blue */
+
+  --card: #FFFFFF;             /* White */
+  --card-foreground: #0B2545;  /* Navy Blue */
+
+  --popover: #FFFFFF;          /* White */
+  --popover-foreground: #0B2545; /* Navy Blue */
+
+  --secondary: #F4F6F9;        /* Light Gray */
+  --secondary-foreground: #1A3D6E; /* Deep Blue */
+
+  --muted: #F4F6F9;            /* Light Gray */
+  --muted-foreground: #64748B; /* Slate Gray */
+
+  --destructive: #C8102E;      /* Canada Red */
+  --destructive-foreground: #FFFFFF;
+
+  --border: #E2E8F0;
+  --input: #E2E8F0;
+  --ring: #0B2545;
+
+  --whatsapp: #25D366;
+}
+
+.dark {
+  --background: #061527;       /* Very Dark Navy */
+  --foreground: #F4F6F9;       /* Light Gray */
+  --card: #0B2545;             /* Navy Blue */
+  --card-foreground: #FFFFFF;
+  --popover: #0B2545;          /* Navy Blue */
+  --popover-foreground: #FFFFFF;
+  --primary: #5BB8E8;          /* Sky Blue */
+  --primary-foreground: #0B2545;
+  --secondary: #1A3D6E;        /* Deep Blue */
+  --secondary-foreground: #F4F6F9;
+  --muted: #1A3D6E;
+  --muted-foreground: #94A3B8;
+  --accent: #C8102E;           /* Canada Red */
+  --accent-foreground: #FFFFFF;
+  --border: rgba(255, 255, 255, 0.1);
+  --input: rgba(255, 255, 255, 0.15);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+}
