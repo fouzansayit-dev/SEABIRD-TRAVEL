@@ -262,7 +262,7 @@ function BookingDialog() {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && closeBooking()}>
-      <DialogContent className="max-h-[92vh] w-[95%] max-w-2xl overflow-y-auto rounded-3xl bg-white p-0 shadow-elevated border-none select-none">
+      <DialogContent className="max-h-[92vh] w-[95%] max-w-2xl overflow-y-auto rounded-3xl bg-white p-0 shadow-elevated border-none">
         
         {submitted ? (
           <div className="flex flex-col items-center justify-center p-8 text-center sm:p-12 animate-in fade-in-50 zoom-in-95 duration-300">
@@ -551,7 +551,7 @@ function BookingDialog() {
                         value={from}
                         onChange={(e) => setFrom(e.target.value)}
                         onFocus={() => setFromFocused(true)}
-                        onBlur={() => setFromFocused(false)}
+                        onBlur={() => setTimeout(() => setFromFocused(false), 200)}
                         placeholder="e.g. Edmonton (YEG)"
                         className="rounded-xl bg-secondary/30 pl-9 text-foreground"
                         autoComplete="off"
@@ -589,7 +589,7 @@ function BookingDialog() {
                         value={to}
                         onChange={(e) => setTo(e.target.value)}
                         onFocus={() => setToFocused(true)}
-                        onBlur={() => setToFocused(false)}
+                        onBlur={() => setTimeout(() => setToFocused(false), 200)}
                         placeholder="e.g. Delhi, London, Maui"
                         className="rounded-xl bg-secondary/30 pl-9 text-foreground"
                         autoComplete="off"
@@ -627,7 +627,8 @@ function BookingDialog() {
                       type="date"
                       value={departureDate}
                       onChange={(e) => setDepartureDate(e.target.value)}
-                      className="rounded-xl bg-secondary/30"
+                      onClick={(e) => e.currentTarget.showPicker?.()}
+                      className="rounded-xl bg-secondary/30 cursor-pointer"
                     />
                   </div>
 
@@ -640,7 +641,8 @@ function BookingDialog() {
                       type="date"
                       value={returnDate}
                       onChange={(e) => setReturnDate(e.target.value)}
-                      className="rounded-xl bg-secondary/30"
+                      onClick={(e) => e.currentTarget.showPicker?.()}
+                      className="rounded-xl bg-secondary/30 cursor-pointer"
                     />
                   </div>
                 </div>

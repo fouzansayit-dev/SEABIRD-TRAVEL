@@ -146,7 +146,7 @@ function ContactDetailsModal({
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto" onClick={onClose}>
-      <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-elevated border-none select-none sm:p-8 animate-in fade-in zoom-in-95 duration-200 text-foreground" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-elevated border-none sm:p-8 animate-in fade-in zoom-in-95 duration-200 text-foreground" onClick={(e) => e.stopPropagation()}>
         {submitted ? (
           <div className="flex flex-col items-center justify-center text-center py-4">
             <div className="relative mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-accent/10 text-accent">
@@ -337,7 +337,7 @@ function FlightsForm() {
               value={from}
               onChange={(e) => setFrom(e.target.value)}
               onFocus={() => setFromFocused(true)}
-              onBlur={() => setFromFocused(false)}
+              onBlur={() => setTimeout(() => setFromFocused(false), 200)}
               placeholder="e.g. Edmonton"
               className="w-full bg-transparent text-sm font-semibold text-foreground outline-none placeholder:font-normal placeholder:text-muted-foreground"
               autoComplete="off"
@@ -370,7 +370,7 @@ function FlightsForm() {
               value={to}
               onChange={(e) => setTo(e.target.value)}
               onFocus={() => setToFocused(true)}
-              onBlur={() => setToFocused(false)}
+              onBlur={() => setTimeout(() => setToFocused(false), 200)}
               placeholder="e.g. London"
               className="w-full bg-transparent text-sm font-semibold text-foreground outline-none placeholder:font-normal placeholder:text-muted-foreground"
               autoComplete="off"
@@ -397,10 +397,10 @@ function FlightsForm() {
           </div>
         </Field>
         <Field label="Departure" icon={<Calendar className="h-3 w-3" />}>
-          <input required type="date" value={dep} onChange={(e) => setDep(e.target.value)} className="w-full bg-transparent text-sm font-semibold text-foreground outline-none" />
+          <input required type="date" value={dep} onChange={(e) => setDep(e.target.value)} onClick={(e) => e.currentTarget.showPicker?.()} className="w-full bg-transparent text-sm font-semibold text-foreground outline-none cursor-pointer" />
         </Field>
         <Field label="Return" icon={<Calendar className="h-3 w-3" />}>
-          <input required={trip === "round-trip"} type="date" value={ret} onChange={(e) => setRet(e.target.value)} disabled={trip !== "round-trip"} className="w-full bg-transparent text-sm font-semibold text-foreground outline-none disabled:opacity-40" />
+          <input required={trip === "round-trip"} type="date" value={ret} onChange={(e) => setRet(e.target.value)} onClick={(e) => e.currentTarget.showPicker?.()} disabled={trip !== "round-trip"} className="w-full bg-transparent text-sm font-semibold text-foreground outline-none disabled:opacity-40 cursor-pointer" />
         </Field>
       </div>
 
@@ -533,7 +533,7 @@ function HotelsForm() {
               value={dest}
               onChange={(e) => setDest(e.target.value)}
               onFocus={() => setDestFocused(true)}
-              onBlur={() => setDestFocused(false)}
+              onBlur={() => setTimeout(() => setDestFocused(false), 200)}
               placeholder="City or hotel"
               className="w-full bg-transparent text-sm font-semibold text-foreground outline-none placeholder:font-normal placeholder:text-muted-foreground"
               autoComplete="off"
@@ -560,10 +560,10 @@ function HotelsForm() {
           </div>
         </Field>
         <Field label="Check-in" icon={<Calendar className="h-3 w-3" />}>
-          <input required type="date" value={ci} onChange={(e) => setCi(e.target.value)} className="w-full bg-transparent text-sm font-semibold text-foreground outline-none" />
+          <input required type="date" value={ci} onChange={(e) => setCi(e.target.value)} onClick={(e) => e.currentTarget.showPicker?.()} className="w-full bg-transparent text-sm font-semibold text-foreground outline-none cursor-pointer" />
         </Field>
         <Field label="Check-out" icon={<Calendar className="h-3 w-3" />}>
-          <input required type="date" value={co} onChange={(e) => setCo(e.target.value)} className="w-full bg-transparent text-sm font-semibold text-foreground outline-none" />
+          <input required type="date" value={co} onChange={(e) => setCo(e.target.value)} onClick={(e) => e.currentTarget.showPicker?.()} className="w-full bg-transparent text-sm font-semibold text-foreground outline-none cursor-pointer" />
         </Field>
         <Field label="Rooms & Guests" icon={<Users className="h-3 w-3" />}>
           <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
@@ -644,7 +644,7 @@ function PackagesForm() {
               value={dest}
               onChange={(e) => setDest(e.target.value)}
               onFocus={() => setDestFocused(true)}
-              onBlur={() => setDestFocused(false)}
+              onBlur={() => setTimeout(() => setDestFocused(false), 200)}
               placeholder="e.g. Canada West Coast"
               className="w-full bg-transparent text-sm font-semibold text-foreground outline-none placeholder:font-normal placeholder:text-muted-foreground"
               autoComplete="off"
@@ -671,7 +671,7 @@ function PackagesForm() {
           </div>
         </Field>
         <Field label="Travel Month" icon={<Calendar className="h-3 w-3" />}>
-          <input required type="month" value={month} onChange={(e) => setMonth(e.target.value)} className="w-full bg-transparent text-sm font-semibold text-foreground outline-none" />
+          <input required type="month" value={month} onChange={(e) => setMonth(e.target.value)} onClick={(e) => e.currentTarget.showPicker?.()} className="w-full bg-transparent text-sm font-semibold text-foreground outline-none cursor-pointer" />
         </Field>
       </div>
       <div className="flex justify-end">
