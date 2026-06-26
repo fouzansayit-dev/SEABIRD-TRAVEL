@@ -1,11 +1,16 @@
+import * as React from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SearchWidget } from "@/components/SearchWidget";
 import { TodaysDealsSection } from "@/components/TodaysDealsSection";
 import { EnquireButton } from "@/components/EnquireButton";
-import { ShieldCheck, Wallet, HeartHandshake, Tag, Plane, Star, ArrowRight, Quote } from "lucide-react";
+import { ShieldCheck, Wallet, HeartHandshake, Tag, Plane, Star, ArrowRight, ArrowLeft, Quote } from "lucide-react";
 import { routes, hotelCities } from "@/data/routes";
 import { destinations, packages } from "@/data/packages";
 import { useBookingDialog } from "@/components/BookingDialog";
+import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
+import canadaBanner from "../../bottom banners/seabird_canada_banner.png";
+import dubaiBanner from "../../bottom banners/seabird_dubai_banner.png";
+import indiaBanner from "../../bottom banners/seabird_india_banner.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -34,6 +39,7 @@ function Home() {
       <TopDestinations />
       <HotelDeals />
       <PopularPackages />
+      <SpecialPromotions />
       <WhyChoose />
       <Testimonials />
       <CtaBanner />
@@ -46,7 +52,7 @@ function Hero() {
     <section className="relative isolate overflow-hidden">
       <div className="absolute inset-0 -z-10">
         <img
-          src="/seabird travel banner.png"
+          src="/seabird_travel_banner.png"
           alt="Seabird Travel Banner"
           className="h-full w-full object-cover object-center"
         />
@@ -251,6 +257,74 @@ export function PackageCard({ pkg }: { pkg: (typeof packages)[number] }) {
   );
 }
 
+function SpecialPromotions() {
+  const { openBooking } = useBookingDialog();
+  const promos = [
+    {
+      image: "/canada_banner_travel.png",
+      alt: "Canada Special Offer",
+      destination: "Canada",
+      title: "Explore Canada",
+      subtitle: "Discover package deals & seasonal flight offers across Canada.",
+      details: "Hi Seabird Travel, I'd like to enquire about the Canada Featured Deal."
+    },
+    {
+      image: "/dubai_banner.png",
+      alt: "Dubai Special Offer",
+      destination: "Dubai",
+      title: "Experience Dubai",
+      subtitle: "Unlock exclusive deals on hotels, flights, and tours in Dubai.",
+      details: "Hi Seabird Travel, I'd like to enquire about the Dubai Featured Deal."
+    }
+  ];
+
+  return (
+    <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
+      <SectionHeader eyebrow="Exclusive Offers" title="Limited-Time Exclusive Deals" />
+      <div className="mt-8 grid gap-6 md:grid-cols-2">
+        {promos.map((promo) => (
+          <button
+            key={promo.destination}
+            onClick={() => openBooking({
+              type: "general",
+              to: promo.destination,
+              details: promo.details
+            })}
+            className="group relative block w-full h-[220px] sm:h-[280px] md:h-[320px] overflow-hidden rounded-3xl bg-muted text-left shadow-card ring-1 ring-border hover:cursor-pointer transition-all duration-500 hover:-translate-y-1 hover:shadow-elevated focus:outline-none"
+          >
+            <img
+              src={promo.image}
+              alt={promo.alt}
+              className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/10 transition-opacity duration-300" />
+            
+            <div className="absolute inset-0 p-6 sm:p-8 text-white z-10 flex flex-col justify-between">
+              <div>
+                <span className="inline-flex items-center gap-1 rounded-full bg-accent text-accent-foreground px-3 py-1 text-xs font-bold uppercase tracking-wider shadow-sm">
+                  Special Offer
+                </span>
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold sm:text-3xl leading-tight drop-shadow-md">
+                  {promo.title}
+                </h3>
+                <p className="mt-1 text-xs sm:text-sm text-white/90 drop-shadow-sm line-clamp-1 sm:line-clamp-none">
+                  {promo.subtitle}
+                </p>
+                <div className="mt-3.5 inline-flex items-center gap-2 rounded-full bg-white text-primary font-bold px-4 py-2 text-xs hover:bg-accent hover:text-accent-foreground transition-all duration-300 shadow-md">
+                  Claim Offer
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </div>
+              </div>
+            </div>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function WhyChoose() {
   const items = [
     { title: "User-Friendly Platform", desc: "Simple search, no clutter, no surprises." },
@@ -307,17 +381,149 @@ function Testimonials() {
 }
 
 function CtaBanner() {
+  const { openBooking } = useBookingDialog();
+  const [api, setApi] = React.useState<CarouselApi>();
+  const [current, setCurrent] = React.useState(0);
+
+  const banners = [
+    {
+      src: canadaBanner,
+      alt: "Seabird Canada Banner",
+      destination: "Canada",
+      title: "Explore the Wonders of Canada",
+      desc: "From the majestic Rockies to historic coastal towns, start your Canadian adventure today.",
+      details: "Hi Seabird Travel, I'd like to enquire about travel packages and flights to Canada."
+    },
+    {
+      src: dubaiBanner,
+      alt: "Seabird Dubai Banner",
+      destination: "Dubai",
+      title: "Experience the Magic of Dubai",
+      desc: "Witness futuristic skyscrapers, golden desert dunes, and world-class luxury experiences.",
+      details: "Hi Seabird Travel, I'd like to enquire about travel packages and flights to Dubai."
+    },
+    {
+      src: indiaBanner,
+      alt: "Seabird India Banner",
+      destination: "India",
+      title: "Discover the Heritage of India",
+      desc: "Immerse yourself in rich cultures, stunning architecture, and legendary hospitality.",
+      details: "Hi Seabird Travel, I'd like to enquire about travel packages and flights to India."
+    }
+  ];
+
+  React.useEffect(() => {
+    if (!api) return;
+
+    setCurrent(api.selectedScrollSnap());
+
+    const onSelect = () => {
+      setCurrent(api.selectedScrollSnap());
+    };
+
+    api.on("select", onSelect);
+
+    const interval = setInterval(() => {
+      api.scrollNext();
+    }, 5000);
+
+    return () => {
+      clearInterval(interval);
+      api.off("select", onSelect);
+    };
+  }, [api]);
+
   return (
     <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-primary-dark p-8 text-primary-foreground sm:p-12">
-        <div className="relative z-10 flex flex-col items-start gap-6 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h2 className="text-3xl font-bold sm:text-4xl">Ready for an unforgettable trip?</h2>
-            <p className="mt-2 max-w-xl text-primary-foreground/85">Tell us where you want to go — we'll handle the rest.</p>
-          </div>
-          <EnquireButton message="Hi Seabird Travel, I'd like to plan an upcoming trip." variant="accent" className="px-7 py-3.5 text-base" />
+      <div className="relative overflow-hidden rounded-3xl shadow-elevated group/banner bg-muted">
+        <Carousel
+          setApi={setApi}
+          opts={{
+            loop: true,
+            align: "start",
+          }}
+          className="w-full"
+        >
+          <CarouselContent className="-ml-0">
+            {banners.map((banner, index) => (
+              <CarouselItem key={index} className="pl-0">
+                <button
+                  onClick={() => openBooking({
+                    type: "general",
+                    to: banner.destination,
+                    details: banner.details
+                  })}
+                  className="relative block w-full h-[240px] sm:h-[320px] md:h-[400px] lg:h-[440px] overflow-hidden text-left hover:cursor-pointer group/slide focus:outline-none"
+                >
+                  <img
+                    src={banner.src}
+                    alt={banner.alt}
+                    className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover/slide:scale-105"
+                  />
+                  {/* Visual overlay for premium look and text readability */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/15 transition-opacity duration-300" />
+                  
+                  {/* Full Slide Content Layout */}
+                  <div className="absolute inset-0 z-10 flex flex-col justify-between p-6 sm:p-10 md:p-12">
+                    <div>
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3.5 py-1.5 text-xs font-semibold text-white uppercase tracking-wider backdrop-blur-md ring-1 ring-white/10">
+                        Featured Destination
+                      </span>
+                    </div>
+                    
+                    <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                      <div className="max-w-2xl text-white">
+                        <h3 className="text-2xl font-bold sm:text-3xl md:text-4xl leading-tight drop-shadow-md">
+                          {banner.title}
+                        </h3>
+                        <p className="mt-2 text-xs sm:text-sm md:text-base text-white/90 drop-shadow-sm line-clamp-2 md:line-clamp-none">
+                          {banner.desc}
+                        </p>
+                      </div>
+                      
+                      <div className="shrink-0">
+                        <div className="inline-flex items-center gap-2 rounded-full bg-accent text-accent-foreground font-bold px-5 py-2.5 sm:px-6 sm:py-3.5 text-sm hover:bg-accent-dark transition-all duration-300 shadow-md group-hover/slide:translate-x-1">
+                          Enquire Now
+                          <ArrowRight className="h-4 w-4" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          
+          {/* Custom Arrows */}
+          <button
+            onClick={() => api?.scrollPrev()}
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 hover:bg-white text-primary shadow-md hover:scale-105 transition-all duration-300 opacity-0 group-hover/banner:opacity-100 hover:cursor-pointer"
+            aria-label="Previous banner"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <button
+            onClick={() => api?.scrollNext()}
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 hover:bg-white text-primary shadow-md hover:scale-105 transition-all duration-300 opacity-0 group-hover/banner:opacity-100 hover:cursor-pointer"
+            aria-label="Next banner"
+          >
+            <ArrowRight className="h-5 w-5" />
+          </button>
+        </Carousel>
+
+        {/* Custom Pagination Dots */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+          {banners.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => api?.scrollTo(index)}
+              className={`h-2 rounded-full transition-all duration-300 hover:cursor-pointer ${
+                current === index ? "w-6 bg-accent" : "w-2 bg-white/50 hover:bg-white/80"
+              }`}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
         </div>
-        <div className="pointer-events-none absolute -right-12 -top-12 h-64 w-64 rounded-full bg-accent/20 blur-3xl" />
       </div>
     </section>
   );

@@ -15,6 +15,7 @@ import { Footer } from "@/components/Footer";
 import { BookingFab } from "@/components/BookingFab";
 import { BookingDialogProvider } from "@/components/BookingDialog";
 import { Toaster } from "@/components/ui/sonner";
+import { PopupBanner } from "@/components/PopupBanner";
 
 // Root layouts and providers
 
@@ -67,6 +68,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
+      { rel: "icon", href: "/seabird_logo.png", type: "image/png" },
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
@@ -106,6 +108,7 @@ function RootComponent() {
           <Footer />
           <BookingFab />
           <Toaster />
+          <PopupBanner />
         </div>
       </BookingDialogProvider>
     </QueryClientProvider>

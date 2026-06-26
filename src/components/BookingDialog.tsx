@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Check, Calendar, Users, MapPin, Mail, Phone, Plane, ClipboardCheck, ArrowRight, MessageSquare, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { sendEnquiryEmail } from "@/lib/email";
+import { popularAirports } from "@/data/routes";
 
 export type BookingType = "flights" | "hotels" | "packages" | "visas" | "general";
 export type ContactMethod = "email" | "phone" | "whatsapp" | "sms";
@@ -95,6 +96,64 @@ function BookingDialog() {
   const [infants, setInfants] = useState(0);
   const [cabinClass, setCabinClass] = useState("Economy");
   const [details, setDetails] = useState("");
+
+  // Suggestion states & Live API suggestions
+  const [fromFocused, setFromFocused] = useState(false);
+  const [toFocused, setToFocused] = useState(false);
+  const [fromSuggestions, setFromSuggestions] = useState<string[]>([]);
+  const [toSuggestions, setToSuggestions] = useState<string[]>([]);
+  const [lastSelectedFrom, setLastSelectedFrom] = useState("");
+  const [lastSelectedTo, setLastSelectedTo] = useState("");
+
+  const defaultPopular = [
+    "Edmonton (YEG), Canada",
+    "Calgary (YYC), Canada",
+    "Toronto (YYZ), Canada",
+    "Vancouver (YVR), Canada",
+    "London (LHR), United Kingdom",
+    "Delhi (DEL), India"
+  ];
+
+  const displayedFromSuggestions = from.trim().length < 2 ? defaultPopular : fromSuggestions;
+  const displayedToSuggestions = to.trim().length < 2 ? defaultPopular : toSuggestions;
+
+  useEffect(() => {
+    if (from === lastSelectedFrom || from.trim().length < 2) {
+      setFromSuggestions([]);
+      return;
+    }
+    const delayDebounceFn = setTimeout(() => {
+      fetch(`https://autocomplete.travelpayouts.com/places2?term=${encodeURIComponent(from)}&locale=en&types[]=airport&types[]=city`)
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            const formatted = data.map((item: any) => `${item.name} (${item.code}), ${item.country_name}`);
+            setFromSuggestions(formatted);
+          }
+        })
+        .catch(err => console.error("Error fetching suggestions:", err));
+    }, 300);
+    return () => clearTimeout(delayDebounceFn);
+  }, [from, lastSelectedFrom]);
+
+  useEffect(() => {
+    if (to === lastSelectedTo || to.trim().length < 2) {
+      setToSuggestions([]);
+      return;
+    }
+    const delayDebounceFn = setTimeout(() => {
+      fetch(`https://autocomplete.travelpayouts.com/places2?term=${encodeURIComponent(to)}&locale=en&types[]=airport&types[]=city`)
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            const formatted = data.map((item: any) => `${item.name} (${item.code}), ${item.country_name}`);
+            setToSuggestions(formatted);
+          }
+        })
+        .catch(err => console.error("Error fetching suggestions:", err));
+    }, 300);
+    return () => clearTimeout(delayDebounceFn);
+  }, [to, lastSelectedTo]);
 
   // Sync state when prefilled changes
   useEffect(() => {
@@ -407,20 +466,74 @@ function BookingDialog() {
                     <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                       Travellers
                     </Label>
-                    <div className="flex h-[42px] items-center justify-between rounded-xl border border-border bg-secondary/30 px-3 text-sm">
-                      <div className="flex items-center gap-1 text-xs">
-                        <Users className="h-4 w-4 text-muted-foreground" />
-                        <span>{adults} Ad · {children} Ch · {infants} Inf</span>
+                    <div className="grid grid-cols-3 gap-2">
+                      {/* Adults Stepper */}
+                      <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-secondary/15 p-1.5 text-center">
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase">Adults</span>
+                        <span className="text-[9px] text-muted-foreground/75">12+ yrs</span>
+                        <div className="mt-1 flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => setAdults(Math.max(1, adults - 1))}
+                            className="h-6 w-6 rounded-full bg-white border border-border hover:bg-secondary flex items-center justify-center font-bold text-xs text-foreground transition shadow-sm hover:cursor-pointer"
+                          >
+                            -
+                          </button>
+                          <span className="w-3 text-center font-semibold text-xs text-foreground">{adults}</span>
+                          <button
+                            type="button"
+                            onClick={() => setAdults(adults + 1)}
+                            className="h-6 w-6 rounded-full bg-white border border-border hover:bg-secondary flex items-center justify-center font-bold text-xs text-foreground transition shadow-sm hover:cursor-pointer"
+                          >
+                            +
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex gap-1.5">
-                        <button type="button" onClick={() => setAdults(Math.max(1, adults - 1))} className="h-6 w-6 rounded-full bg-white border flex items-center justify-center font-bold text-xs">-</button>
-                        <button type="button" onClick={() => setAdults(adults + 1)} className="h-6 w-6 rounded-full bg-white border flex items-center justify-center font-bold text-xs">+</button>
-                        {type !== "hotels" && type !== "visas" && (
-                          <>
-                            <button type="button" onClick={() => setChildren(Math.max(0, children - 1))} className="h-6 w-6 rounded-full bg-white border flex items-center justify-center font-bold text-xs text-blue-500">c-</button>
-                            <button type="button" onClick={() => setChildren(children + 1)} className="h-6 w-6 rounded-full bg-white border flex items-center justify-center font-bold text-xs text-blue-500">c+</button>
-                          </>
-                        )}
+
+                      {/* Children Stepper */}
+                      <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-secondary/15 p-1.5 text-center">
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase">Children</span>
+                        <span className="text-[9px] text-muted-foreground/75">2-11 yrs</span>
+                        <div className="mt-1 flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => setChildren(Math.max(0, children - 1))}
+                            className="h-6 w-6 rounded-full bg-white border border-border hover:bg-secondary flex items-center justify-center font-bold text-xs text-foreground transition shadow-sm hover:cursor-pointer"
+                          >
+                            -
+                          </button>
+                          <span className="w-3 text-center font-semibold text-xs text-foreground">{children}</span>
+                          <button
+                            type="button"
+                            onClick={() => setChildren(children + 1)}
+                            className="h-6 w-6 rounded-full bg-white border border-border hover:bg-secondary flex items-center justify-center font-bold text-xs text-foreground transition shadow-sm hover:cursor-pointer"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Infants Stepper */}
+                      <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-secondary/15 p-1.5 text-center">
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase">Infants</span>
+                        <span className="text-[9px] text-muted-foreground/75">Under 2 yrs</span>
+                        <div className="mt-1 flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => setInfants(Math.max(0, infants - 1))}
+                            className="h-6 w-6 rounded-full bg-white border border-border hover:bg-secondary flex items-center justify-center font-bold text-xs text-foreground transition shadow-sm hover:cursor-pointer"
+                          >
+                            -
+                          </button>
+                          <span className="w-3 text-center font-semibold text-xs text-foreground">{infants}</span>
+                          <button
+                            type="button"
+                            onClick={() => setInfants(infants + 1)}
+                            className="h-6 w-6 rounded-full bg-white border border-border hover:bg-secondary flex items-center justify-center font-bold text-xs text-foreground transition shadow-sm hover:cursor-pointer"
+                          >
+                            +
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -437,9 +550,31 @@ function BookingDialog() {
                         id="from"
                         value={from}
                         onChange={(e) => setFrom(e.target.value)}
+                        onFocus={() => setFromFocused(true)}
+                        onBlur={() => setFromFocused(false)}
                         placeholder="e.g. Edmonton (YEG)"
-                        className="rounded-xl bg-secondary/30 pl-9"
+                        className="rounded-xl bg-secondary/30 pl-9 text-foreground"
+                        autoComplete="off"
                       />
+                      {fromFocused && displayedFromSuggestions.length > 0 && (
+                        <ul className="absolute left-0 right-0 top-full z-50 mt-1 max-h-48 overflow-y-auto rounded-xl border border-border bg-white py-1.5 shadow-elevated animate-in fade-in slide-in-from-top-1 duration-150">
+                          {displayedFromSuggestions.map((dest) => (
+                            <li
+                              key={dest}
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                setFrom(dest);
+                                setLastSelectedFrom(dest);
+                                setFromFocused(false);
+                              }}
+                              className="px-3 py-2 text-xs font-semibold text-foreground hover:bg-secondary/60 hover:cursor-pointer flex items-center gap-2"
+                            >
+                              <MapPin className="h-3 w-3 text-muted-foreground" />
+                              {dest}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                     </div>
                   </div>
 
@@ -453,9 +588,31 @@ function BookingDialog() {
                         id="to"
                         value={to}
                         onChange={(e) => setTo(e.target.value)}
+                        onFocus={() => setToFocused(true)}
+                        onBlur={() => setToFocused(false)}
                         placeholder="e.g. Delhi, London, Maui"
-                        className="rounded-xl bg-secondary/30 pl-9"
+                        className="rounded-xl bg-secondary/30 pl-9 text-foreground"
+                        autoComplete="off"
                       />
+                      {toFocused && displayedToSuggestions.length > 0 && (
+                        <ul className="absolute left-0 right-0 top-full z-50 mt-1 max-h-48 overflow-y-auto rounded-xl border border-border bg-white py-1.5 shadow-elevated animate-in fade-in slide-in-from-top-1 duration-150">
+                          {displayedToSuggestions.map((dest) => (
+                            <li
+                              key={dest}
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                setTo(dest);
+                                setLastSelectedTo(dest);
+                                setToFocused(false);
+                              }}
+                              className="px-3 py-2 text-xs font-semibold text-foreground hover:bg-secondary/60 hover:cursor-pointer flex items-center gap-2"
+                            >
+                              <MapPin className="h-3 w-3 text-muted-foreground" />
+                              {dest}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                     </div>
                   </div>
                 </div>

@@ -21,7 +21,7 @@ export function Header() {
     <header className="sticky top-0 z-40 w-full border-b border-border bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/75">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
         <Link to="/" className="flex items-center gap-2">
-          <img src="/seabird_logo (1).png" alt="Seabird Travel Logo" className="h-10 w-auto" />
+          <img src="/seabird_logo.png" alt="Seabird Travel Logo" className="h-10 w-auto" />
           <div className="flex flex-col leading-none">
             <span className="text-lg font-bold tracking-tight text-primary">Seabird Travel</span>
             <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">

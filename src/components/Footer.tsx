@@ -9,8 +9,10 @@ export function Footer() {
     <footer className="mt-20 bg-primary text-primary-foreground">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-4">
         <div>
-          <div className="flex items-center gap-2">
-            <img src="/seabird_logo (1).png" alt="Seabird Travel Logo" className="h-10 w-auto" />
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white p-1 shadow-sm">
+              <img src="/seabird_logo.png" alt="Seabird Travel Logo" className="h-full w-auto object-contain" />
+            </div>
             <span className="text-lg font-bold">Seabird Travel</span>
           </div>
           <p className="mt-4 text-sm text-primary-foreground/75">
@@ -73,7 +75,7 @@ export function Footer() {
       <div className="border-t border-white/10">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 py-5 text-xs text-primary-foreground/60 sm:flex-row sm:px-6">
           <span>© {new Date().getFullYear()} Seabird Travel. All rights reserved.</span>
-          <span>Lead-generation site. All bookings handled by our team.</span>
+        
         </div>
       </div>
     </footer>

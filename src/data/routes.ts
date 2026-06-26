@@ -77,3 +77,29 @@ export const airlines = [
   "KLM",
   "Turkish Airlines",
 ];
+
+export const popularAirports = [
+  "Edmonton (YEG)",
+  "Calgary (YYC)",
+  "Toronto (YYZ)",
+  "Vancouver (YVR)",
+  "London (LHR)",
+  "Delhi (DEL)",
+  "Mumbai (BOM)",
+  "Amritsar (ATQ)",
+  "Dubai (DXB)",
+  "Paris (CDG)",
+  "Istanbul (IST)",
+  "Mexico City (MEX)",
+  "Cancun (CUN)",
+  "Zurich (ZRH)",
+  "New York (JFK)",
+  "Los Angeles (LAX)",
+  "Las Vegas (LAS)",
+  "Maui (OGG)",
+  "Honolulu (HNL)",
+  "Orlando (MCO)",
+  "Rome (FCO)",
+  "Tokyo (HND)",
+  "Sydney (SYD)"
+];

@@ -1,7 +1,9 @@
-import { useState } from "react";
+import * as React from "react";
+import { useState, useEffect } from "react";
 import { Plane, Hotel, Package as PackageIcon, MapPin, Calendar, Users, X, Minus, Plus, Check } from "lucide-react";
 import { sendEnquiryEmail } from "@/lib/email";
 import { toast } from "sonner";
+import { popularAirports } from "@/data/routes";
 
 type Tab = "flights" | "hotels" | "packages";
 type TripType = "one-way" | "round-trip" | "multicity";
@@ -12,7 +14,7 @@ export function SearchWidget({ defaultTab = "flights" }: { defaultTab?: Tab }) {
   const [tab, setTab] = useState<Tab>(defaultTab);
 
   return (
-    <div className="rounded-3xl bg-white p-3 shadow-elevated ring-1 ring-black/5 sm:p-5">
+    <div className="rounded-3xl bg-white p-3 shadow-elevated ring-1 ring-black/5 sm:p-5 text-foreground">
       <div className="flex gap-1 rounded-2xl bg-secondary p-1">
         <TabBtn active={tab === "flights"} onClick={() => setTab("flights")} icon={<Plane className="h-4 w-4" />}>Flights</TabBtn>
         <TabBtn active={tab === "hotels"} onClick={() => setTab("hotels")} icon={<Hotel className="h-4 w-4" />}>Hotels</TabBtn>
@@ -44,7 +46,7 @@ function TabBtn({ active, onClick, icon, children }: { active: boolean; onClick:
 
 function Field({ label, icon, children }: { label: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <label className="block rounded-xl border border-border bg-white px-3 py-2.5 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15">
+    <label className="relative block rounded-xl border border-border bg-white px-3 py-2.5 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15">
       <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
         {icon} {label}
       </div>
@@ -144,7 +146,7 @@ function ContactDetailsModal({
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto" onClick={onClose}>
-      <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-elevated border-none select-none sm:p-8 animate-in fade-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-elevated border-none select-none sm:p-8 animate-in fade-in zoom-in-95 duration-200 text-foreground" onClick={(e) => e.stopPropagation()}>
         {submitted ? (
           <div className="flex flex-col items-center justify-center text-center py-4">
             <div className="relative mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-accent/10 text-accent">
@@ -191,19 +193,19 @@ function ContactDetailsModal({
             <div className="space-y-3">
               <div className="space-y-1">
                 <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Full Name *</label>
-                <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="John Doe" className="w-full rounded-xl border border-border bg-secondary/10 px-3 py-2 text-sm outline-none focus:border-primary" />
+                <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="John Doe" className="w-full rounded-xl border border-border bg-secondary/10 px-3 py-2 text-sm text-foreground outline-none focus:border-primary" />
                 {errors.name && <span className="text-[11px] text-destructive flex items-center gap-1 mt-0.5">{errors.name}</span>}
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-1">
                   <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Email *</label>
-                  <input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="john@example.com" className="w-full rounded-xl border border-border bg-secondary/10 px-3 py-2 text-sm outline-none focus:border-primary" />
+                  <input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="john@example.com" className="w-full rounded-xl border border-border bg-secondary/10 px-3 py-2 text-sm text-foreground outline-none focus:border-primary" />
                   {errors.email && <span className="text-[11px] text-destructive flex items-center gap-1 mt-0.5">{errors.email}</span>}
                 </div>
                 <div className="space-y-1">
                   <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Phone *</label>
-                  <input required type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="587-788-2222" className="w-full rounded-xl border border-border bg-secondary/10 px-3 py-2 text-sm outline-none focus:border-primary" />
+                  <input required type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="587-788-2222" className="w-full rounded-xl border border-border bg-secondary/10 px-3 py-2 text-sm text-foreground outline-none focus:border-primary" />
                   {errors.phone && <span className="text-[11px] text-destructive flex items-center gap-1 mt-0.5">{errors.phone}</span>}
                 </div>
               </div>
@@ -253,6 +255,63 @@ function FlightsForm() {
   const [cabin, setCabin] = useState("Economy");
   const [success, setSuccess] = useState<string | null>(null);
 
+  const [fromFocused, setFromFocused] = useState(false);
+  const [toFocused, setToFocused] = useState(false);
+  const [fromSuggestions, setFromSuggestions] = useState<string[]>([]);
+  const [toSuggestions, setToSuggestions] = useState<string[]>([]);
+  const [lastSelectedFrom, setLastSelectedFrom] = useState("");
+  const [lastSelectedTo, setLastSelectedTo] = useState("");
+
+  const defaultPopular = [
+    "Edmonton (YEG), Canada",
+    "Calgary (YYC), Canada",
+    "Toronto (YYZ), Canada",
+    "Vancouver (YVR), Canada",
+    "London (LHR), United Kingdom",
+    "Delhi (DEL), India"
+  ];
+
+  const displayedFromSuggestions = from.trim().length < 2 ? defaultPopular : fromSuggestions;
+  const displayedToSuggestions = to.trim().length < 2 ? defaultPopular : toSuggestions;
+
+  React.useEffect(() => {
+    if (from === lastSelectedFrom || from.trim().length < 2) {
+      setFromSuggestions([]);
+      return;
+    }
+    const delayDebounceFn = setTimeout(() => {
+      fetch(`https://autocomplete.travelpayouts.com/places2?term=${encodeURIComponent(from)}&locale=en&types[]=airport&types[]=city`)
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            const formatted = data.map((item: any) => `${item.name} (${item.code}), ${item.country_name}`);
+            setFromSuggestions(formatted);
+          }
+        })
+        .catch(err => console.error("Error fetching suggestions:", err));
+    }, 300);
+    return () => clearTimeout(delayDebounceFn);
+  }, [from, lastSelectedFrom]);
+
+  React.useEffect(() => {
+    if (to === lastSelectedTo || to.trim().length < 2) {
+      setToSuggestions([]);
+      return;
+    }
+    const delayDebounceFn = setTimeout(() => {
+      fetch(`https://autocomplete.travelpayouts.com/places2?term=${encodeURIComponent(to)}&locale=en&types[]=airport&types[]=city`)
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            const formatted = data.map((item: any) => `${item.name} (${item.code}), ${item.country_name}`);
+            setToSuggestions(formatted);
+          }
+        })
+        .catch(err => console.error("Error fetching suggestions:", err));
+    }, 300);
+    return () => clearTimeout(delayDebounceFn);
+  }, [to, lastSelectedTo]);
+
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     const msg = `Hi Seabird Travel, I'd like a flight quote.\n• Trip: ${trip}\n• From: ${from || "—"}\n• To: ${to || "—"}\n• Depart: ${dep || "—"}${trip === "round-trip" ? `\n• Return: ${ret || "—"}` : ""}\n• Passengers: ${adults} adult(s), ${children} child(ren), ${infants} infant(s)\n• Class: ${cabin}`;
@@ -272,10 +331,70 @@ function FlightsForm() {
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Field label="From" icon={<MapPin className="h-3 w-3" />}>
-          <input required value={from} onChange={(e) => setFrom(e.target.value)} placeholder="e.g. Edmonton" className="w-full bg-transparent text-sm font-semibold text-foreground outline-none placeholder:font-normal placeholder:text-muted-foreground" />
+          <div className="relative">
+            <input
+              required
+              value={from}
+              onChange={(e) => setFrom(e.target.value)}
+              onFocus={() => setFromFocused(true)}
+              onBlur={() => setFromFocused(false)}
+              placeholder="e.g. Edmonton"
+              className="w-full bg-transparent text-sm font-semibold text-foreground outline-none placeholder:font-normal placeholder:text-muted-foreground"
+              autoComplete="off"
+            />
+            {fromFocused && displayedFromSuggestions.length > 0 && (
+              <ul className="absolute left-0 right-0 top-[calc(100%+12px)] z-50 mt-1 max-h-48 overflow-y-auto rounded-xl border border-border bg-white py-1.5 shadow-elevated animate-in fade-in slide-in-from-top-1 duration-150">
+                {displayedFromSuggestions.map((dest: string) => (
+                  <li
+                    key={dest}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      setFrom(dest);
+                      setLastSelectedFrom(dest);
+                      setFromFocused(false);
+                    }}
+                    className="px-3 py-2 text-xs font-semibold text-foreground hover:bg-secondary/60 hover:cursor-pointer flex items-center gap-2"
+                  >
+                    <MapPin className="h-3 w-3 text-muted-foreground" />
+                    {dest}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </Field>
         <Field label="To" icon={<MapPin className="h-3 w-3" />}>
-          <input required value={to} onChange={(e) => setTo(e.target.value)} placeholder="e.g. London" className="w-full bg-transparent text-sm font-semibold text-foreground outline-none placeholder:font-normal placeholder:text-muted-foreground" />
+          <div className="relative">
+            <input
+              required
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+              onFocus={() => setToFocused(true)}
+              onBlur={() => setToFocused(false)}
+              placeholder="e.g. London"
+              className="w-full bg-transparent text-sm font-semibold text-foreground outline-none placeholder:font-normal placeholder:text-muted-foreground"
+              autoComplete="off"
+            />
+            {toFocused && displayedToSuggestions.length > 0 && (
+              <ul className="absolute left-0 right-0 top-[calc(100%+12px)] z-50 mt-1 max-h-48 overflow-y-auto rounded-xl border border-border bg-white py-1.5 shadow-elevated animate-in fade-in slide-in-from-top-1 duration-150">
+                {displayedToSuggestions.map((dest: string) => (
+                  <li
+                    key={dest}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      setTo(dest);
+                      setLastSelectedTo(dest);
+                      setToFocused(false);
+                    }}
+                    className="px-3 py-2 text-xs font-semibold text-foreground hover:bg-secondary/60 hover:cursor-pointer flex items-center gap-2"
+                  >
+                    <MapPin className="h-3 w-3 text-muted-foreground" />
+                    {dest}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </Field>
         <Field label="Departure" icon={<Calendar className="h-3 w-3" />}>
           <input required type="date" value={dep} onChange={(e) => setDep(e.target.value)} className="w-full bg-transparent text-sm font-semibold text-foreground outline-none" />
@@ -365,6 +484,40 @@ function HotelsForm() {
   const [guests, setGuests] = useState(2);
   const [success, setSuccess] = useState<string | null>(null);
 
+  const [destFocused, setDestFocused] = useState(false);
+  const [destSuggestions, setDestSuggestions] = useState<string[]>([]);
+  const [lastSelectedDest, setLastSelectedDest] = useState("");
+
+  const defaultPopular = [
+    "Edmonton (YEG), Canada",
+    "Calgary (YYC), Canada",
+    "Toronto (YYZ), Canada",
+    "Vancouver (YVR), Canada",
+    "London (LHR), United Kingdom",
+    "Delhi (DEL), India"
+  ];
+
+  const displayedSuggestions = dest.trim().length < 2 ? defaultPopular : destSuggestions;
+
+  useEffect(() => {
+    if (dest === lastSelectedDest || dest.trim().length < 2) {
+      setDestSuggestions([]);
+      return;
+    }
+    const delayDebounceFn = setTimeout(() => {
+      fetch(`https://autocomplete.travelpayouts.com/places2?term=${encodeURIComponent(dest)}&locale=en&types[]=airport&types[]=city`)
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            const formatted = data.map((item: any) => `${item.name} (${item.code}), ${item.country_name}`);
+            setDestSuggestions(formatted);
+          }
+        })
+        .catch(err => console.error("Error fetching suggestions:", err));
+    }, 300);
+    return () => clearTimeout(delayDebounceFn);
+  }, [dest, lastSelectedDest]);
+
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     setSuccess(`Hi Seabird Travel, I'd like a hotel quote.\n• Destination: ${dest || "—"}\n• Check-in: ${ci || "—"}\n• Check-out: ${co || "—"}\n• Rooms: ${rooms}\n• Guests: ${guests}`);
@@ -374,18 +527,48 @@ function HotelsForm() {
     <form onSubmit={submit} className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Field label="Destination" icon={<MapPin className="h-3 w-3" />}>
-          <input required value={dest} onChange={(e) => setDest(e.target.value)} placeholder="City or hotel" className="w-full bg-transparent text-sm font-semibold outline-none placeholder:font-normal placeholder:text-muted-foreground" />
+          <div className="relative">
+            <input
+              required
+              value={dest}
+              onChange={(e) => setDest(e.target.value)}
+              onFocus={() => setDestFocused(true)}
+              onBlur={() => setDestFocused(false)}
+              placeholder="City or hotel"
+              className="w-full bg-transparent text-sm font-semibold text-foreground outline-none placeholder:font-normal placeholder:text-muted-foreground"
+              autoComplete="off"
+            />
+            {destFocused && displayedSuggestions.length > 0 && (
+              <ul className="absolute left-0 right-0 top-[calc(100%+12px)] z-50 mt-1 max-h-48 overflow-y-auto rounded-xl border border-border bg-white py-1.5 shadow-elevated animate-in fade-in slide-in-from-top-1 duration-150">
+                {displayedSuggestions.map((item: string) => (
+                  <li
+                    key={item}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      setDest(item);
+                      setLastSelectedDest(item);
+                      setDestFocused(false);
+                    }}
+                    className="px-3 py-2 text-xs font-semibold text-foreground hover:bg-secondary/60 hover:cursor-pointer flex items-center gap-2"
+                  >
+                    <MapPin className="h-3 w-3 text-muted-foreground" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </Field>
         <Field label="Check-in" icon={<Calendar className="h-3 w-3" />}>
-          <input required type="date" value={ci} onChange={(e) => setCi(e.target.value)} className="w-full bg-transparent text-sm font-semibold outline-none" />
+          <input required type="date" value={ci} onChange={(e) => setCi(e.target.value)} className="w-full bg-transparent text-sm font-semibold text-foreground outline-none" />
         </Field>
         <Field label="Check-out" icon={<Calendar className="h-3 w-3" />}>
-          <input required type="date" value={co} onChange={(e) => setCo(e.target.value)} className="w-full bg-transparent text-sm font-semibold outline-none" />
+          <input required type="date" value={co} onChange={(e) => setCo(e.target.value)} className="w-full bg-transparent text-sm font-semibold text-foreground outline-none" />
         </Field>
         <Field label="Rooms & Guests" icon={<Users className="h-3 w-3" />}>
-          <div className="flex items-center gap-2 text-sm font-semibold">
-            <input type="number" min={1} value={rooms} onChange={(e) => setRooms(+e.target.value)} className="w-12 bg-transparent outline-none" /> rm ·
-            <input type="number" min={1} value={guests} onChange={(e) => setGuests(+e.target.value)} className="w-12 bg-transparent outline-none" /> gst
+          <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+            <input type="number" min={1} value={rooms} onChange={(e) => setRooms(+e.target.value)} className="w-12 bg-transparent text-foreground outline-none" /> rm ·
+            <input type="number" min={1} value={guests} onChange={(e) => setGuests(+e.target.value)} className="w-12 bg-transparent text-foreground outline-none" /> gst
           </div>
         </Field>
       </div>
@@ -411,6 +594,41 @@ function PackagesForm() {
   const [dest, setDest] = useState("");
   const [month, setMonth] = useState("");
   const [success, setSuccess] = useState<string | null>(null);
+
+  const [destFocused, setDestFocused] = useState(false);
+  const [destSuggestions, setDestSuggestions] = useState<string[]>([]);
+  const [lastSelectedDest, setLastSelectedDest] = useState("");
+
+  const defaultPopular = [
+    "Edmonton (YEG), Canada",
+    "Calgary (YYC), Canada",
+    "Toronto (YYZ), Canada",
+    "Vancouver (YVR), Canada",
+    "London (LHR), United Kingdom",
+    "Delhi (DEL), India"
+  ];
+
+  const displayedSuggestions = dest.trim().length < 2 ? defaultPopular : destSuggestions;
+
+  useEffect(() => {
+    if (dest === lastSelectedDest || dest.trim().length < 2) {
+      setDestSuggestions([]);
+      return;
+    }
+    const delayDebounceFn = setTimeout(() => {
+      fetch(`https://autocomplete.travelpayouts.com/places2?term=${encodeURIComponent(dest)}&locale=en&types[]=airport&types[]=city`)
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            const formatted = data.map((item: any) => `${item.name} (${item.code}), ${item.country_name}`);
+            setDestSuggestions(formatted);
+          }
+        })
+        .catch(err => console.error("Error fetching suggestions:", err));
+    }, 300);
+    return () => clearTimeout(delayDebounceFn);
+  }, [dest, lastSelectedDest]);
+
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     setSuccess(`Hi Seabird Travel, I'd like package options.\n• Destination: ${dest || "—"}\n• Travel month: ${month || "—"}`);
@@ -419,17 +637,41 @@ function PackagesForm() {
     <form onSubmit={submit} className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label="Destination" icon={<MapPin className="h-3 w-3" />}>
-          <input
-            required
-            type="text"
-            value={dest}
-            onChange={(e) => setDest(e.target.value)}
-            placeholder="e.g. Canada West Coast"
-            className="w-full bg-transparent text-sm font-semibold outline-none placeholder:font-normal placeholder:text-muted-foreground"
-          />
+          <div className="relative">
+            <input
+              required
+              type="text"
+              value={dest}
+              onChange={(e) => setDest(e.target.value)}
+              onFocus={() => setDestFocused(true)}
+              onBlur={() => setDestFocused(false)}
+              placeholder="e.g. Canada West Coast"
+              className="w-full bg-transparent text-sm font-semibold text-foreground outline-none placeholder:font-normal placeholder:text-muted-foreground"
+              autoComplete="off"
+            />
+            {destFocused && displayedSuggestions.length > 0 && (
+              <ul className="absolute left-0 right-0 top-[calc(100%+12px)] z-50 mt-1 max-h-48 overflow-y-auto rounded-xl border border-border bg-white py-1.5 shadow-elevated animate-in fade-in slide-in-from-top-1 duration-150">
+                {displayedSuggestions.map((item: string) => (
+                  <li
+                    key={item}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      setDest(item);
+                      setLastSelectedDest(item);
+                      setDestFocused(false);
+                    }}
+                    className="px-3 py-2 text-xs font-semibold text-foreground hover:bg-secondary/60 hover:cursor-pointer flex items-center gap-2"
+                  >
+                    <MapPin className="h-3 w-3 text-muted-foreground" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </Field>
         <Field label="Travel Month" icon={<Calendar className="h-3 w-3" />}>
-          <input required type="month" value={month} onChange={(e) => setMonth(e.target.value)} className="w-full bg-transparent text-sm font-semibold outline-none" />
+          <input required type="month" value={month} onChange={(e) => setMonth(e.target.value)} className="w-full bg-transparent text-sm font-semibold text-foreground outline-none" />
         </Field>
       </div>
       <div className="flex justify-end">

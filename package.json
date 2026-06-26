@@ -3,10 +3,12 @@
   "private": true,
   "sideEffects": false,
   "type": "module",
+  "main": "index.js",
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
     "build:dev": "vite build --mode development",
+    "start": "node index.js",
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write ."
@@ -65,6 +67,7 @@
     "vaul": "^1.1.2",
     "vite-tsconfig-paths": "^6.0.2",
     "nodemailer": "^6.9.16",
+    "srvx": "^0.11.17",
     "zod": "^3.24.2"
   },
   "devDependencies": {
