@@ -16,6 +16,7 @@ import { BookingFab } from "@/components/BookingFab";
 import { BookingDialogProvider } from "@/components/BookingDialog";
 import { Toaster } from "@/components/ui/sonner";
 import { PopupBanner } from "@/components/PopupBanner";
+import { ChatbotWidget } from "@/components/ChatbotWidget";
 
 // Root layouts and providers
 
@@ -107,6 +108,7 @@ function RootComponent() {
           </main>
           <Footer />
           <BookingFab />
+          <ChatbotWidget />
           <Toaster />
           <PopupBanner />
         </div>
